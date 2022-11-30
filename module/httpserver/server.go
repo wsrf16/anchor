@@ -35,8 +35,6 @@ func (p HttpProxy) Serve(autoReconnect bool) {
 }
 
 func (p HttpProxy) dispatch(w http.ResponseWriter, r *http.Request) {
-	fmt.Println(r.URL.Path)
-
 	patternHandlers := make(httpserver.PatternHandlers)
 	patternHandlers[`/ssh`] = SSHHandler
 	patternHandlers[`/shell`] = shellHandler
