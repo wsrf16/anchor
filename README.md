@@ -1,0 +1,76 @@
+This is a tool to help you access external servers more efficiently
+
+## 1.功能介绍
+
+
+
+名词：多机串联
+
+
+$ cat config.yaml
+```
+setting:
+  allows:
+    - 192.168.0.1-192.168.255.254
+
+tcp:
+  - listen: :8081
+  - listen: :8082
+    forward: mecs.com:8080
+
+udp:
+  - listen: :8083
+    forward: localhost:8084
+
+socks:
+  - listen: :1080
+
+http:
+  - listen: :8087
+  - listen: :8088
+    forward: http://mecs.com:8080
+    addedHead: test_header
+
+ssh:
+  - listen: :8022
+    forward: mecs.com:22
+
+httpserver:
+  listen: :8080
+  shell:
+    enabled: true
+  ssh:
+    - id: mecs.com:22
+      addr: mecs.com:22
+      user: root
+      password: 11
+      privateKey: "-----BEGIN RSA PRIVATE KEY-----
+  MIIEpQIBAAKCAQEA5tm9KUtCjjSNMqZGENzyLYj5W/8fwghZVtta1CVv0ycgMW9G
+  UKRnXkHR9mrUQ38W7JvMaY2G8Z5eijvIp20YtIe/jrvgs/ZWxmAZANz/CSTI5/Jt
+  3ks33wGHRey/Rh3nM+CpfWyQkR34PVQP00A/L/9D5PuZ0kaU+mmt9am/iefouSJP
+  uweo+jJaTMwZIaR5qbu+UOh/9FrvfCZQqBgslrIzVE37Lk58zCWRG9opY85RvQJr
+  hQbyyYCSeKE/Pm+SqZO3ZXj4pvCH3YRSudW0sOLaiyro29I/Ttk0u3ATE3YnJu3t
+  BSOI9WKJN259xXAZFJCYQeJIP74B8RSTpzDXVwIDAQABAoIBAQDU5nC/Gaqa7bpe
+  wNwTh0FOX2nhv0txrjN+mDSPPKuB6C6XiNEnZEf0tO1HvkRer2Hb+t+tZRnT0cPM
+  5s/qIQJM1HkE0R6tuf1TXKMSmb4Xl7Y1u+45udMgNw+jnHDW4JMu0/5cLviw7RvY
+  q6Mgp7resCPUlXnKZM/Wlgoaa1+7dMY+RGHLznWVaYAwdgvR5sjmtfobmrHaIt4E
+  e0XL7DdbtrLFhK2WVXyDlmB5Y/ji7UajRNTeZVEhihgUdBkTiyBMlJ8jA3sBG/7s
+  EL+HS4WmjaoIh86wvUeh+Ue/R16p9CGfNS4QHocLM26qK3MwxOEb/il8un1/lOVB
+  x7OWlYJZAoGBAO5URQSJsqCk2Dgitj+A3yPF650rsDsMhJcAoOtHPlwae/8RNh/9
+  eNwqxPNrCqr+nbf4Eo22IxWmAUSRtq4NcWD0mhFyBb+MarD8P8NDByzllGlXAQok
+  HK68KK6dmfnFMIa6seIJkQ2H0scP17GK/MWsjrKA6/+k4kuVwqLJkH2TAoGBAPf3
+  hGb7M3BZqMWn/n6CWCyD3Jhtpfae9SZolTBrrC32uW+YxrLcJQcHQ4AqbYQihZap
+  jnYUNUTB5ZpCB8Xt9vkmrJrkvvVmeonw8ebDNQbCHS0btU+06OBtwHahCj4mOLxI
+  X4OtYKIoqyZzF1psPBP3i1jXmeA/3mpQM7TA+PmtAoGBAMq0mAM1Dt39dv2/4FyA
+  wslNZInIh9qhWgCJA1U5wjtaN06JmAx7bRltsxgKWgd4CjNX5ofre0nFaNymRsch
+  HebGBGiEH4l8553i3mS4lNjF54X0/yhd8JtZ5Awodbbv1ccx8Wv8kQf+FvNCcUVL
+  npSOoMwIRTGpTuPU27fTUnbLAoGBANvRFxV3oGz7fmrh9vBNOj8UEc0qfpJ27ZnD
+  4mVPPg5tBowQYiySjVyCqusGMZmOROB/pOO2HFa8kH7EBEIJJwRNrXuORl4jH4QD
+  DV5lNC+uitC/HGbxV/QENzayofLgTTFT8yA25VA7PyXRpyUoh8Wnj2cNkcJCvDeA
+  q6WT3+LtAoGAKHhFUXtSznBtajKaAc36rNR7V29/RctCTKWMHG9BrMXmrvOnuJw1
+  r6/cWM1g7ez4qEsgzk0rRVRhsIoq01sXf4dc2N7Un2fgkmQOSqX7qqYBQgJUEFjB
+  F4kdbHpJWTnF2l70iLkGIBu8Pxs7sUK658Q81iGJ/rvvaC8XAR5WM/M=
+  -----END RSA PRIVATE KEY-----"
+```
+
+
