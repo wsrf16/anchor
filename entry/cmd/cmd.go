@@ -3,6 +3,7 @@ package cmd
 import (
 	"anchor/entry/server"
 	"anchor/module/httpproxy"
+	"fmt"
 	"github.com/spf13/cobra"
 	"github.com/wsrf16/swiss/sugar/base/control"
 	"github.com/wsrf16/swiss/sugar/logo"
@@ -183,11 +184,19 @@ func Start() {
 		Short: "Help you access the server efficiently",
 		//Long:  "",
 		Run: func(cmd *cobra.Command, args []string) {
-			cmd.Help()
+			if cmd.HasFlags() {
+				version, _ := cmd.Flags().GetBool("version")
+				if version {
+					fmt.Printf("Version: %s\n", "v1.0.1")
+				}
+			} else {
+				cmd.Help()
+			}
 		},
 	}
 	rootCmd.PersistentFlags().StringP("listen", "l", "", "<listen-address>")
 	rootCmd.PersistentFlags().StringP("forward", "f", "", "<forward-address>")
+	rootCmd.Flags().BoolP("version", "v", true, "")
 	rootCmd.AddCommand(tcpCmd)
 	rootCmd.AddCommand(udpCmd)
 	rootCmd.AddCommand(socksCmd)

@@ -14,7 +14,8 @@ This is a tool to help you access external servers more efficiently
 
 
 
-## 2.图示
+## 2.示意图
+![img.png](img.png)
 
 
 ## 3.启动方式
@@ -85,7 +86,7 @@ $ anchor tcp -l :8081 -f 192.168.0.10:8081
 $ anchor udp -l :8081 -f 192.168.0.10:8081
 ```
 
-#### 3.1.4 socks借债是
+#### 3.1.4 socks代理
 该类转发在会话层实现，支持http、https、ssh等大部分基于tcp的协议。
 
 ·正向代理
@@ -100,9 +101,9 @@ $ anchor socks -l :8081 -f 192.168.0.10:8081
 #### 3.1.6 搭建http服务器，以http形式执行shell或访问远程ssh
 本模式由于参数较多，仅支持配置文件方式启动。
 
-#### 3.1.7 <a id="httpserver">搭建http服务器，以http形式执行shell或访问远程ssh</a>
-# 访问远程ssh服务器
+#### 3.1.7 <a id="httpserver">访问远程ssh服务器</a>
 $ ssh-pty 192.168.0.10 -u root -p 12345678
+```
 
 ### 3.2 配置文件模式
 以配置文件方式启动，一次启动同时支持多种转发方式，listen为本地监听地址（必填），forward为转发目标地址（非必填）。
