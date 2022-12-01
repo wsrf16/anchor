@@ -101,7 +101,8 @@ $ anchor socks -l :8081 -f 192.168.0.10:8081
 #### 3.1.6 搭建http服务器，以http形式执行shell或访问远程ssh
 本模式由于参数较多，仅支持配置文件方式启动。
 
-#### 3.1.7 <a id="httpserver">访问远程ssh服务器</a>
+#### 3.1.7 访问远程ssh服务器
+<a id="httpserver">访问远程ssh服务器</a>
 $ ssh-pty 192.168.0.10 -u root -p 12345678
 ```
 
