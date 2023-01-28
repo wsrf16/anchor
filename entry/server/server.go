@@ -10,7 +10,6 @@ import (
 	"github.com/wsrf16/swiss/sugar/netkit/socket/tcpkit"
 	"github.com/wsrf16/swiss/sugar/netkit/socket/udpkit"
 	"github.com/wsrf16/swiss/sugar/netkit/sshkit"
-	"time"
 )
 
 func Serve() {
@@ -21,41 +20,50 @@ func Serve() {
 
 	if global.TCP != nil {
 		for _, conf := range global.TCP {
-			if len(conf.Forward) > 0 {
-				go tcpkit.TransferToServe(conf.Listen, conf.Forward)
+			if len(conf.Remote) > 0 {
+				go tcpkit.TransferFromListenToDialAddress(conf.Local, conf.Remote)
 			} else {
-				go tcpkit.TransferToHostServe(conf.Listen)
+				go tcpkit.TransferFromListenAddress(conf.Local)
 			}
+		}
+	}
+	if global.NAT != nil {
+		for _, conf := range global.NAT {
+			go tcpkit.TransferFromListenToListenAddress(conf.Local, conf.Remote)
+		}
+	}
+	if global.Link != nil {
+		for _, conf := range global.Link {
+			go tcpkit.TransferFromDialToDialAddress(conf.Local, conf.Remote)
 		}
 	}
 	if global.UDP != nil {
 		for _, conf := range global.UDP {
-			go udpkit.TransferToServe(conf.Listen, conf.Forward)
+			go udpkit.TransferFromListenToDialAddress(conf.Local, conf.Remote)
 		}
 	}
 	if global.Socks != nil {
 		for _, conf := range global.Socks {
-			go sockskit.TransferToHostServe(conf.Listen)
+			go sockskit.TransferFromListenAddress(conf.Local)
 		}
 	}
 	if global.SSH != nil {
 		for _, conf := range global.SSH {
-			go tcpkit.TransferToServe(conf.Listen, conf.Forward)
+			go tcpkit.TransferFromListenToDialAddress(conf.Local, conf.Remote)
 		}
 	}
 	if global.HTTP != nil {
 		for _, conf := range global.HTTP {
-			go httpproxy.TransferToServeConf(conf)
+			go httpproxy.ListenAndServe(conf.Local, conf.Remote)
 		}
 	}
 	if global.HttpServer != nil && global.HttpServer.SSH != nil {
-		ssh := collectorkit.ToPointerArray(global.HttpServer.SSH)
+		ssh := collectorkit.ToPointerSlice(global.HttpServer.SSH)
 		sshkit.GetSingleton().PutMulti(ssh)
-		go httpserver.Serve(global.HttpServer)
+		go httpserver.ListenAndServe(global.HttpServer.Local)
 	}
 	fmt.Println("start a anchor server")
-	for {
-		time.Sleep(5 * time.Second)
-	}
+	select {}
+	fmt.Println("end a anchor server")
 
 }

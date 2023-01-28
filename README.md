@@ -4,7 +4,7 @@ This is a tool to help you access external servers more efficiently
 本软件针对跨区、跨网段等网络不通场景，或需要批量网络代理场景而开发，可实现：
 - 基于http协议的转发（正、反向代理）
 - 基于tcp协议的转发（正、反向代理）
-- 基于udp协议的转发（反向代理）
+- 基于udp协议的转发（反向代理），udp到tcp的伪装
 - 基于socks5协议的代理
 - 基于ssh协议的转发以及建立隧道，可用于通过ssh协议中转的方式搭建ssh代理机或http代理机
 - 搭建http服务器，以http接口形式调用服务端shell脚本，或以服务器为中转机，访问远端ssh服务器
@@ -31,18 +31,20 @@ Usage:
 Available Commands:                                                     
   completion  Generate the autocompletion script for the specified shell
   help        Help about any command                                    
-  http        Start a http server                                       
+  http        Start a http server         
+  link        link to nat server
+  nat         Start a nat server                              
+  pty         Login ssh server                                         
   server      Start a anchor server                                     
   socks       Start a socks server                                      
   ssh         Start a ssh server                                        
-  ssh-pty     Login remote ssh                                          
   tcp         Start a tcp server                                        
   udp         Start a udp server                                        
                                                                         
 Flags:                                                                  
-  -f, --forward string   <forward-address>                              
   -h, --help             help for anchor                                
-  -l, --listen string    <listen-address>                               
+  -L, --local string    <local-address>                               
+  -R, --remote string   <remote-address>                              
                                                                         
 Use "anchor [command] --help" for more information about a command.
 ```
@@ -53,13 +55,13 @@ Use "anchor [command] --help" for more information about a command.
 ·正向代理
 ```
 # 将本机作为代理服务器。其他机器可以通过设置代理为192.168.0.100:8081访问其他网络（假设该服务器ip为192.168.0.100）
-$ anchor http -l :8081
+$ anchor http -L :8081
 ```
 
 ·反向代理
 ```
 # 将本地8081端口接收到的http请求，转发到http://192.168.0.10:8081
-$ anchor http -l :8081 -f http://192.168.0.10:8081
+$ anchor http -L :8081 -R http://192.168.0.10:8081
 ```
 
 #### 3.1.2 tcp转发
@@ -68,13 +70,13 @@ $ anchor http -l :8081 -f http://192.168.0.10:8081
 ·正向代理
 ```
 # 将本机作为代理服务器。其他机器可以通过设置代理为192.168.0.100:8081访问其他网络（假设该服务器ip为192.168.0.100）
-$ anchor tcp -l :8081
+$ anchor tcp -L :8081
 ```
 
 ·反向代理
 ```
 # 将本地8081端口接收到的tcp请求，转发到192.168.0.10的8081端口
-$ anchor tcp -l :8081 -f 192.168.0.10:8081
+$ anchor tcp -L :8081 -R 192.168.0.10:8081
 ```
 
 #### 3.1.3 udp转发
@@ -83,16 +85,16 @@ $ anchor tcp -l :8081 -f 192.168.0.10:8081
 ·反向代理
 ```
 # 将本地8081端口接收到的udp请求，转发到192.168.0.10的8081端口
-$ anchor udp -l :8081 -f 192.168.0.10:8081
+$ anchor udp -L :8081 -R 192.168.0.10:8081
 ```
 
 #### 3.1.4 socks代理
-该类转发在会话层实现，支持http、https、ssh等大部分基于tcp的协议。
+该类转发在会话层实现，支持http、https、ssh、ftp等大部分基于tcp的协议。
 
 ·正向代理
 ```
 # 将本地8081端口接收到的tcp请求，转发到192.168.0.10的8081端口
-$ anchor socks -l :8081 -f 192.168.0.10:8081
+$ anchor socks -L :8081 -R 192.168.0.10:8081
 ```
 
 #### 3.1.5 建立ssh隧道
@@ -103,38 +105,51 @@ $ anchor socks -l :8081 -f 192.168.0.10:8081
 
 #### 3.1.7 访问远程ssh服务器
 ```
-$ ssh-pty 192.168.0.10 -u root -p 12345678
+$ pty 192.168.0.10 -u root -p 12345678
 ```
 
-### 3.2 配置文件模式
-以配置文件方式启动，一次启动同时支持多种转发方式，listen为本地监听地址（必填），forward为转发目标地址（非必填）。
+#### 3.1.8 内网穿透
+##### 3.1.8.1 在外网服务器执行（内网ip：192.168.0.104 外网ip：10.172.0.104）
+$ anchor nat -L 192.168.0.4:9090 -R 192.168.0.4:9091
 
+##### 3.1.8.2 在内网服务器执行（内网ip：192.168.0.105）
+$ anchor link -L 192.168.0.104:9091 -R 127.0.0.1:7777
+
+##### 3.1.8.3 在外网客户端
+在外网访问10.172.0.104:9090，即相当于访问内网192.168.0.105:7777
+
+### 3.2 配置文件模式
+以配置文件方式启动，一次启动同时支持多种转发方式，local为本地监听地址（必填），remote为转发目标地址（非必填）。
+
+```
+$ ./anchor server
+```
 $ cat config.yaml
 ```
 tcp:
-  - listen: :8081
-  - listen: :8082
-    forward: mecs.com:8080
+  - local: :8081
+  - local: :8082
+    remote: mecs.com:8080
 
 udp:
-  - listen: :8083
-    forward: localhost:8084
+  - local: :8083
+    remote: localhost:8084
 
 socks:
-  - listen: :1080
+  - local: :1080
 
 http:
-  - listen: :8087
-  - listen: :8088
-    forward: http://mecs.com:8080
+  - local: :8087
+  - local: :8088
+    remote: http://mecs.com:8080
     addedHead: test_header
 
 ssh:
-  - listen: :8022
-    forward: mecs.com:22
+  - local: :8022
+    remote: mecs.com:22
 
 httpserver:
-  listen: :8080
+  local: :8080
   shell:
     enabled: true
   ssh:
@@ -179,7 +194,7 @@ httpserver:
 ```
 httpserver:
   # 监听本地端口
-  listen: :8080
+  local: :8080
   # 在服务器本地执行shell命令
   shell:
     enabled: true
@@ -207,7 +222,7 @@ httpserver:
 {
     "spanId": "02063545-70ca-11ed-8f4d-f018980ebd48",
     "code": 0,
-    "msg": "操作成功",
+    "msg": "success",
     "data": {
         "results": [
             {
@@ -238,7 +253,7 @@ httpserver:
 {
     "spanId": "96478563-70cb-11ed-86be-000c297d3626",
     "code": 0,
-    "msg": "操作成功",
+    "msg": "success",
     "data": {
         "results": [
             {

@@ -1,3 +1,5 @@
+SETLOCAL
+
 set CGO_ENABLED=0
 
 set GOARCH=amd64
@@ -11,4 +13,6 @@ set GOOS=linux
 
 @REM set GOARM=7
 
-go build -o anchor
+go build
+
+ENDLOCAL

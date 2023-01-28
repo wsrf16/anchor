@@ -8,7 +8,7 @@ import (
 	"net/http"
 )
 
-func SSHHandler(w http.ResponseWriter, r *http.Request) {
+func sshHandler(w http.ResponseWriter, r *http.Request) {
 	// {"type":"ssh","shell":{"commands":["whoami", "find"]},"ssh":{"commands":["whoami", "find"],"serverId":"mecs.com:22"}}
 	// {"commands":["whoami", "find"],"serverId":"mecs.com:22"}
 	w.Header().Set("Content-Type", "application/json")

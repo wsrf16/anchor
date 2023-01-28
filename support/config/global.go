@@ -6,6 +6,8 @@ type RootConfig struct {
 	Setting    *Setting          `json:"setting"`
 	TCP        []TCPConfig       `json:"tcp"`
 	UDP        []UDPConfig       `json:"udp"`
+	NAT        []NATConfig       `json:"nat"`
+	Link       []LinkConfig      `json:"link"`
 	Socks      []SocksConfig     `json:"socks"`
 	HTTP       []HTTPConfig      `json:"http"`
 	SSH        []SSHConfig       `json:"ssh"`
@@ -15,38 +17,47 @@ type Setting struct {
 	Allows []string `json:"allows"`
 }
 type TCPConfig struct {
-	Listen  string `json:"listen"`
-	Forward string `json:"forward"`
+	Local  string `json:"local"`
+	Remote string `json:"remote"`
 }
 type UDPConfig struct {
-	Listen  string `json:"listen"`
-	Forward string `json:"forward"`
+	Local  string `json:"local"`
+	Remote string `json:"remote"`
 }
 type SocksConfig struct {
-	Listen string `json:"listen"`
+	Local string `json:"local"`
 }
 type HTTPConfig struct {
-	Listen    string `json:"listen"`
-	Forward   string `json:"forward"`
+	Local     string `json:"local"`
+	Remote    string `json:"forward"`
 	AddedHead string `json:"addedHead"`
 }
 type SSHConfig struct {
-	Listen  string `json:"listen"`
-	Forward string `json:"forward"`
+	Local  string `json:"local"`
+	Remote string `json:"remote"`
 }
-type SSH struct {
-	ID         string `json:"id"`
-	Addr       string `json:"addr"`
-	User       string `json:"user"`
-	Password   string `json:"password"`
-	PrivateKey string `json:"privateKey"`
-}
+
+//	type SSH struct {
+//		ID         string `json:"id"`
+//		Addr       string `json:"addr"`
+//		User       string `json:"user"`
+//		Password   string `json:"password"`
+//		PrivateKey string `json:"privateKey"`
+//	}
 type HttpServerConfig struct {
-	Listen string               `json:"listen"`
-	Shell  *ShellConfig         `json:"shell"`
-	SSH    []sshkit.SSHProperty `json:"ssh"`
+	Local string               `json:"local"`
+	Shell *ShellConfig         `json:"shell"`
+	SSH   []sshkit.SSHProperty `json:"ssh"`
 }
 
 type ShellConfig struct {
 	Enabled bool `json:"enabled"`
+}
+type NATConfig struct {
+	Local  string `json:"local"`
+	Remote string `json:"remote"`
+}
+type LinkConfig struct {
+	Local  string `json:"local"`
+	Remote string `json:"remote"`
 }

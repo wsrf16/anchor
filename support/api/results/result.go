@@ -37,7 +37,7 @@ func New(code int, msg string, data any) Result {
 }
 
 func Success(data any) Result {
-	return New(SUCCEED, "操作成功", data)
+	return New(SUCCEED, "success", data)
 }
 
 func Failed(err error) Result {
