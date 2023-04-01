@@ -1,4 +1,6 @@
 This is a tool to help you access external servers more efficiently
+切换[**中文文档**](README.zh-CN.md)
+
 
 [toc]
 
@@ -27,7 +29,7 @@ This software is developed for scenarios such as cross-region, cross-network seg
 
 
 ## 3. Instructions for use
-This program supports linux, macos, and windows platforms. The cli is written in cobra, so the command line style is the same as that of kubernetes. When executed without parameters, you can view the help information.
+This program supports Linux, macOS, and Windows platforms. The cli is written in cobra, so the command line style is the same as that of kubernetes. When executed without parameters, you can view the help information.
 
 
 

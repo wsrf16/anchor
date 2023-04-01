@@ -1,4 +1,6 @@
 This is a tool to help you access external servers more efficiently
+切换[**中文文档**](README.zh-CN.md)
+
 
 [toc]
 
@@ -27,7 +29,7 @@ This is a tool to help you access external servers more efficiently
 
 
 ## 3.使用说明
-本程序支持linux、macos、windows平台，cli采用cobra编写，因此命令行风格与kubernetes相同，当不带参数执行时，可查看帮助信息。
+本程序支持Linux、macOS、Windows平台，cli采用cobra编写，因此命令行风格与kubernetes相同，当不带参数执行时，可查看帮助信息。
 
 
 
