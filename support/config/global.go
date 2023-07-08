@@ -25,7 +25,9 @@ type UDPConfig struct {
 	Remote string `json:"remote"`
 }
 type SocksConfig struct {
-	Local string `json:"local"`
+	Local    string `json:"local"`
+	Username string `json:"username"`
+	Password string `json:"password"`
 }
 type HTTPConfig struct {
 	Local     string `json:"local"`

@@ -44,7 +44,11 @@ func Serve() {
 	}
 	if global.Socks != nil {
 		for _, conf := range global.Socks {
-			go sockskit.TransferFromListenAddress(conf.Local)
+			var config sockskit.SocksConfig
+			config.Credential = sockskit.Credential{}
+			config.Credential.Username = conf.Username
+			config.Credential.Password = conf.Password
+			go sockskit.TransferFromListenAddress(conf.Local, &config)
 		}
 	}
 	if global.SSH != nil {

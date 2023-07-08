@@ -5,7 +5,7 @@ import (
 	"github.com/wsrf16/swiss/sugar/io/viperkit"
 )
 
-const Version = "v1.2.0"
+const Version = "v1.2.1"
 
 var global *RootConfig
 

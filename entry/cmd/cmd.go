@@ -106,17 +106,26 @@ func Start() {
 	var socksCMD = &cobra.Command{
 		Use:     "socks",
 		Short:   "Start a socks server",
-		Long:    "socks -L <local-address>",
-		Example: "socks -L :8081",
+		Long:    "socks -L <local-address> [-U <username> -P <password>]",
+		Example: "socks -L :8081 -U user -P 1234",
 		Run: func(cmd *cobra.Command, args []string) {
 			if cmd.HasFlags() {
 				if !checkAllFlags(cmd, "local") {
 					cmd.Help()
 				}
 				local, _ := cmd.Flags().GetString("local")
-				// remote, _ := cmd.Flags().GetString("remote")
+
+				//_, err := cmd.Flags().GetString("password")
+				//if err != nil {
+				//    cmd.Help()
+				//}
+
+				username, _ := cmd.Flags().GetString("username")
+				password, _ := cmd.Flags().GetString("password")
+				config := sockskit.NewSocksConfig(username, password)
+
 				if len(local) > 0 {
-					err := sockskit.TransferFromListenAddress(local)
+					err := sockskit.TransferFromListenAddress(local, config)
 					if err != nil {
 						panic(err)
 					}
@@ -127,6 +136,8 @@ func Start() {
 		},
 	}
 	socksCMD.Flags().StringP("local", "L", "", "<local-address>")
+	socksCMD.Flags().StringP("username", "U", "", "<username>")
+	socksCMD.Flags().StringP("password", "P", "", "<password>")
 
 	var sshCMD = &cobra.Command{
 		Use:     "ssh",
