@@ -13,6 +13,8 @@ udp:
 
 socks:
   - local: :1080
+    username: xxxx
+    password: yyyy
 
 http:
   - local: :8087

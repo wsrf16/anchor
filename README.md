@@ -1,5 +1,6 @@
 This is a tool to help you access external servers more efficiently
-切换[**English Document**](README.en-US.md)
+
+English | [**简体中文**](README.zh-CN.md)
 
 
 [toc]
@@ -7,40 +8,40 @@ This is a tool to help you access external servers more efficiently
 
 
 
-## 1.功能介绍
+## 1. Feature introduction
 
-本软件针对跨区、跨网段等网络不通场景，或需要批量网络代理场景而开发，可实现：
-- 基于http协议的转发（正、反向代理）
-- 基于tcp协议的转发（正、反向代理）
-- 基于udp协议的转发（反向代理），udp到tcp的伪装
-- 基于socks5协议的代理
-- 基于ssh协议的转发以及建立隧道，可用于通过ssh协议中转的方式搭建ssh代理机或http代理机
-- 搭建http服务器，以http接口形式调用服务端shell脚本，或以服务器为中转机，访问远端ssh服务器
-- 以伪终端的形式，访问远程ssh服务器，类似putty、xshell等工具
-- 内网穿透，在家访问公司电脑，异地组网
-
-
+This software is developed for scenarios such as cross-region, cross-network segment and other network barriers, or scenarios that require batches of network agents, and can achieve:
+- Forwarding based on http protocol (forward and reverse proxy)
+- Forwarding based on tcp protocol (forward and reverse proxy)
+- Forwarding (reverse proxy) based on udp protocol, camouflage from udp to tcp
+- Proxy based on socks5 protocol
+- Based on ssh protocol forwarding and tunnel establishment, it can be used to build ssh agent or http agent through ssh protocol transfer
+- Build an http server, call the server shell script in the form of http interface, or use the server as a transit machine to access the remote ssh server
+- Access the remote ssh server in the form of a pseudo-terminal, similar to putty, xshell and other tools
+- Intranet penetration, access to company computers at home, remote networking
 
 
-## 2.示意图
+
+
+## 2. Schematic diagram
 ![img.png](img.png)
 
 
 
 
-## 3.使用说明
-本程序支持Linux、macOS、Windows平台，cli采用cobra编写，因此命令行风格与kubernetes相同，当不带参数执行时，可查看帮助信息。
+## 3. Instructions for use
+This program supports Linux, macOS, and Windows platforms. The cli is written in cobra, so the command line style is the same as that of kubernetes. When executed without parameters, you can view the help information.
 
 
 
-### 3.1 命令行启动
-通过命令行参数的方式启动程序，支持单一协议端口转发，不带参数直接执行可查看帮助：
+### 3.1 Command line startup
+Start the program with command line parameters, support port forwarding for a single protocol, and execute directly without parameters to view the help:
 ```
 Help you access the server efficiently
 
-Usage:                                                                  
-  anchor [flags]                                                        
-  anchor [command]                                                      
+Usage:
+   anchor [flags]
+   anchor [command]
                                                                         
 Available Commands:                                                     
   completion  Generate the autocompletion script for the specified shell
@@ -65,97 +66,97 @@ Use "anchor [command] --help" for more information about a command.
 
 
 
-#### 3.1.1 http转发
-该类转发在应用层实现，仅适用于http协议，因为https需要证书。
+#### 3.1.1 http forwarding
+This type of forwarding is implemented at the application layer and is only applicable to the http protocol, because https requires a certificate.
 
-·正向代理
+·Forward proxy
 ```
-# 将本机作为代理服务器。其他机器可以通过设置代理为192.168.0.100:8081访问其他网络（假设该服务器ip为192.168.0.100）
+# Use this machine as a proxy server. Other machines can access other networks by setting the proxy to 192.168.0.100:8081 (assuming the server ip is 192.168.0.100)
 $ anchor http -L :8081
 ```
 
-·反向代理
+·Reverse proxy
 ```
-# 将本地8081端口接收到的http请求，转发到http://192.168.0.10:8081
+# Forward the http request received by the local port 8081 to http://192.168.0.10:8081
 $ anchor http -L :8081 -R http://192.168.0.10:8081
 ```
 
 
 
-#### 3.1.2 tcp转发
-该类转发在会话层实现，支持http、https、ssh等大部分基于tcp的协议。
+#### 3.1.2 tcp forwarding
+This type of forwarding is implemented at the session layer and supports most tcp-based protocols such as http, https, and ssh.
 
-·正向代理
+·Forward proxy
 ```
-# 将本机作为代理服务器。其他机器可以通过设置代理为192.168.0.100:8081访问其他网络（假设该服务器ip为192.168.0.100）
+# Use this machine as a proxy server. Other machines can access other networks by setting the proxy to 192.168.0.100:8081 (assuming the server ip is 192.168.0.100)
 $ anchor tcp -L :8081
 ```
 
-·反向代理
+·Reverse proxy
 ```
-# 将本地8081端口接收到的tcp请求，转发到192.168.0.10的8081端口
-$ anchor tcp -L :8081 -R 192.168.0.10:8081
-```
-
-
-
-#### 3.1.3 udp转发
-该类转发在会话层实现，支持udp协议。
-
-·反向代理
-```
-# 将本地8081端口接收到的udp请求，转发到192.168.0.10的8081端口
-$ anchor udp -L :8081 -R 192.168.0.10:8081
+# Forward the tcp request received by the local port 8081 to port 8081 of 192.168.0.10
+$ anchor tcp -L:8081 -R 192.168.0.10:8081
 ```
 
 
 
-#### 3.1.4 socks代理
-该类转发在会话层实现，支持http、https、ssh、ftp等大部分基于tcp的协议。
+#### 3.1.3 udp forwarding
+This type of forwarding is implemented at the session layer and supports the udp protocol.
 
-·正向代理
+·Reverse proxy
 ```
-# 将本机作为socks5代理服务器。其他机器可以通过设置代理为192.168.0.100:1080访问其他网络（假设该服务器ip为192.168.0.100）
-$ anchor socks -L :1080 -U user -P 1234
+# Forward the udp request received by the local port 8081 to port 8081 of 192.168.0.10
+$ anchor udp -L:8081 -R 192.168.0.10:8081
 ```
 
 
 
-#### 3.1.5 建立ssh隧道
+#### 3.1.4 socks proxy
+This type of forwarding is implemented at the session layer and supports most TCP-based protocols such as http, https, ssh, and ftp.
+
+·Forward proxy
+```
+# Forward the tcp request received by the local port 8081 to port 8081 of 192.168.0.10
+$ anchor socks -L:8081 -R 192.168.0.10:8081
+```
+
+
+
+#### 3.1.5 Establish ssh tunnel
 
 
 
 
-#### 3.1.6 搭建http服务器，以http形式执行shell或访问远程ssh
-本模式由于参数较多，仅支持配置文件方式启动。
+#### 3.1.6 Set up http server, execute shell or access remote ssh in http form
+Due to the large number of parameters, this mode only supports configuration file startup.
 
 
 
-#### 3.1.7 访问远程ssh服务器
+#### 3.1.7 Access remote ssh server
 ```
 $ anchor pty 192.168.0.10 -u root -p 12345678
 ```
 
 
 
-#### 3.1.8 内网穿透
-##### 3.1.8.1 在外网服务器执行（内网ip：192.168.0.104 外网ip：10.172.0.104）
+#### 3.1.8 Intranet Penetration
+##### 3.1.8.1 Execute on the external network server (intranet ip: 192.168.0.104 external network ip: 10.172.0.104)
 ```
 $ anchor nat -L 192.168.0.4:9090 -R 192.168.0.4:9091
 ```
 
-##### 3.1.8.2 在内网服务器执行（内网ip：192.168.0.105）
+##### 3.1.8.2 Intranet server execution (intranet ip: 192.168.0.105)
 ```
 $ anchor link -L 192.168.0.104:9091 -R 127.0.0.1:7777
 ```
 
-##### 3.1.8.3 在外网客户端
-在外网访问10.172.0.104:9090，即相当于访问内网192.168.0.105:7777
+##### 3.1.8.3 On the external network client
+Accessing 10.172.0.104:9090 on the external network is equivalent to accessing 192.168.0.105:7777 on the internal network
 
 
 
-### 3.2 配置文件模式
-通过配置文件方式获取参数，local为本地监听地址（必填），remote为转发目标地址（非必填），一次启动可同时支持多种协议转发，不带参数直接执行可查看帮助：
+### 3.2 Configuration file mode
+Obtain parameters through configuration files. local is the local listening address (required), and remote is the forwarding target address (not required). One-time startup can support multiple protocol forwarding at the same time. Direct execution without parameters can view the help:
 
 ```
 $ ./anchor server
@@ -200,42 +201,39 @@ httpserver:
 
 
 
-### 3.3 搭建远程执行机
-这里详细说一下[搭建http服务器](#httpserver)，以下配置内容说明：监听本地8080端口，客户端可通过调用http接口的方式执行shell命令，或通过该跳板服务器访问其他ssh服务器执行shell命令。
-> 除支持linux平台外，同时也支持windows平台的dos命令
+### 3.3 Build a remote execution machine
+Let’s talk about [build http server](#httpserver) in detail here, the following configuration description: monitor the local port 8080, the client can execute shell commands by calling the http interface, or access other ssh servers to execute shell commands through the springboard server.
+> In addition to supporting the linux platform, it also supports the dos command of the windows platform
 
 
 
-#### 3.3.1 搭建shell执行机
+#### 3.3.1 Building a shell execution machine
 ```
 httpserver:
-  # 监听本地端口
+# Listen on local port
   local: :8080
-  # 在服务器本地执行shell命令
+  # Execute shell commands locally on the server
   shell:
     enabled: true
-  # 通过服务器连接其他ssh服务器执行shell命令
+  # Connect to other ssh servers through the server to execute shell commands
   ssh:
-      # 自定义，用于标记该目标地址的唯一标识
+      # Custom, used to mark the unique identifier of the target address
     - id: 192.168.0.10:22
-      # 目标服务器地址
+      # Target server address
       addr: 192.168.0.10:22
-      # 登录该服务器的用户名
+      # Username to log in to the server
       user: root
-      # 登录该服务器的密码
+      # Login password for this server
       password: 11
-      # 也可配置私钥，与密码认证方式二选一即可
+      # You can also configure the private key, and choose one of the password authentication methods
       privateKey: "-----BEGIN RSA PRIVATE KEY-----
       XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
       -----END RSA PRIVATE KEY-----"
 ```
-
-
-
-#### 3.3.2 搭建ssh执行机
-经过以上配置后，可以通过调用以下http接口，ssh连接到id为“mecs.com:22”的机器上执行命令
+#### 3.3.2 Build ssh execution machine
+After the above configuration, you can connect to the machine with the id "mecs.com:22" through ssh to execute the command by calling the following http interface
 > $ curl -XPOST "http://localhost:8089/ssh" -H "Content-Type: applicaton/json" -d "{\"commands\":[\"whoami\", \"aaaa\", \"curl\"],\"serverId\":\"mecs.com:22\"}"
-返回以下类似内容：
+returns something like:
 ```
 {
     "spanId": "02063545-70ca-11ed-8f4d-f018980ebd48",
@@ -265,7 +263,7 @@ httpserver:
 
 
 #### 3.3.3 调用shell
-也可在服务器本地执行shell命令，使用方法与ssh类似，此时无需指定serverId
+The shell command can also be executed locally on the server. The method of use is similar to that of ssh, and there is no need to specify the serverId at this time
 > $ curl -XPOST "http://localhost:8089/shell" -H "Content-Type: applicaton/json" -d "{\"commands\":[\"whoami\", \"aaaa\", \"curl\"]}"
 ```
 {
