@@ -3,7 +3,7 @@ setting:
     - 192.168.0.1-192.168.255.254
 
 tcp:
-  - local: :8081
+  - local: :1070
   - local: :8082
     remote: mecs.com:7777
 

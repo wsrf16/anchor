@@ -1,6 +1,6 @@
-This is a tool to help you access external servers more efficiently
+# Anchor
 
-English | [**简体中文**](README.zh-CN.md)
+[![EN doc](https://img.shields.io/badge/document-Chinese-blue.svg)](README.zh-CN.md)
 
 
 [toc]

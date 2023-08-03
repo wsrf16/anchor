@@ -11,15 +11,59 @@ import (
 	"github.com/wsrf16/swiss/sugar/netkit/socket/sockskit"
 	"github.com/wsrf16/swiss/sugar/netkit/socket/tcpkit"
 	"github.com/wsrf16/swiss/sugar/netkit/socket/udpkit"
+	"net"
 	"os"
 	"strings"
+	"sync"
 	"time"
 )
 
+var ch = make(chan int)
+var switchState = false
+var srcChannel = make(chan net.Conn)
+
+var tcpListenerChannel = make(chan *net.TCPListener, 4096)
+var udpListenerChannel = make(chan net.Conn, 4096)
+var buttonVector *widget.Button
+
+var wg sync.WaitGroup
+var m sync.Mutex
+
+func setOff(listenerChannels ...chan *net.TCPListener) {
+	go func(listenerChannels ...chan *net.TCPListener) {
+		m.Lock()
+		defer m.Unlock()
+		if switchState {
+			for _, listenerChannel := range listenerChannels {
+				if listenerChannel != nil {
+					listener := <-listenerChannel
+					listener.Close()
+					switchState = false
+					time.Sleep(200 * time.Millisecond)
+					buttonVector.SetText("Start")
+				}
+			}
+		}
+	}(listenerChannels...)
+}
+
+func setOn() {
+	go func() {
+		m.Lock()
+		defer m.Unlock()
+		if switchState == false {
+			switchState = true
+			time.Sleep(200 * time.Millisecond)
+			buttonVector.SetText("Stop")
+		}
+	}()
+}
+
 func main() {
+
 	//s := os.Args[0]
 	a := app.New()
-	w := a.NewWindow("anchor网络转发工具 " + config.Version)
+	w := a.NewWindow("anchor " + config.Version)
 	selectList := widget.NewSelect([]string{"TCP", "UDP", "SOCKS", "SSH", "NAT", "LINK"}, func(s string) {
 		if s == "SOCKS" {
 		}
@@ -52,64 +96,110 @@ func main() {
 	passwordInput.MultiLine = false
 	passwordInput.PlaceHolder = "password"
 
-	var buttonVector *widget.Button
 	button := widget.NewButton("Start", func() {
 		local := strings.TrimSpace(localInput.Text)
 		remote := strings.TrimSpace(remoteInput.Text)
 		username := strings.TrimSpace(usernameInput.Text)
 		password := strings.TrimSpace(passwordInput.Text)
 		proxyType := selectList.Selected
-		buttonVector.SetText("Stop")
 		switch proxyType {
 		case "UDP":
-			if len(local) > 0 && len(remote) > 0 {
-				err := udpkit.TransferFromListenToDialAddress(local, remote)
-				if err != nil {
-					logo.Error("UDP启动错误", err)
-				}
+			if switchState == false {
+				RunBackground(func() {
+					setOn()
+					if len(local) > 0 && len(remote) > 0 {
+						err := udpkit.TransferFromListenToDialAddress(local, remote, udpListenerChannel)
+						if err != nil {
+							setOff(nil)
+							logo.Error("UDP连接错误或中断", err)
+						}
+					} else {
+						setOff(nil)
+						logo.Error("未填写Remote Address", nil)
+					}
+				})
+			} else {
+				setOff(nil)
 			}
-			recover(buttonVector)
-		case "TCP":
-			if len(local) > 0 && len(remote) > 0 {
-				err := tcpkit.TransferFromListenToDialAddress(local, remote)
-				if err != nil {
-					logo.Error("TCP启动错误", err)
-				}
-			} else if len(local) > 0 {
-				err := tcpkit.TransferFromListenAddress(local)
-				if err != nil {
-					logo.Error("TCP启动错误", err)
-				}
-			}
-			recover(buttonVector)
-		case "SOCKS":
-			config := sockskit.NewSocksConfig(username, password)
 
-			if len(local) > 0 {
-				err := sockskit.TransferFromListenAddress(local, config)
-				if err != nil {
-					logo.Error("SOCKS启动错误", err)
-				}
+		case "TCP":
+			if switchState == false {
+				RunBackground(func() {
+					setOn()
+					if len(local) > 0 && len(remote) > 0 {
+						err := tcpkit.TransferFromListenToDialAddress(local, remote, false, tcpListenerChannel)
+						if err != nil {
+							setOff(tcpListenerChannel)
+							logo.Error("TCP连接错误或中断", err)
+						}
+					} else if len(local) > 0 {
+						err := tcpkit.TransferFromListenAddress(local, false, tcpListenerChannel)
+						if err != nil {
+							setOff(tcpListenerChannel)
+							logo.Error("TCP连接错误或中断", err)
+						}
+					}
+				})
+			} else {
+				setOff(tcpListenerChannel)
 			}
-			recover(buttonVector)
+		case "SOCKS":
+			if switchState == false {
+				RunBackground(func() {
+					setOn()
+					if len(local) > 0 {
+						config := sockskit.NewSocksConfig(username, password)
+						err := sockskit.TransferFromListenAddress(local, config, false, tcpListenerChannel)
+						if err != nil {
+							setOff(tcpListenerChannel)
+							logo.Error("SOCKS连接错误或中断", err)
+						}
+					}
+				})
+			} else {
+				setOff(tcpListenerChannel)
+			}
 		case "SSH":
-			err := tcpkit.TransferFromListenToDialAddress(local, remote)
-			if err != nil {
-				logo.Error("SSH启动错误", err)
+			if switchState == false {
+				RunBackground(func() {
+					setOn()
+					err := tcpkit.TransferFromListenToDialAddress(local, remote, false, tcpListenerChannel)
+					if err != nil {
+						setOff(tcpListenerChannel)
+						logo.Error("SSH连接错误或中断", err)
+					}
+				})
+			} else {
+				setOff(tcpListenerChannel)
 			}
-			recover(buttonVector)
 		case "NAT":
-			err := tcpkit.TransferFromListenToListenAddress(local, remote)
-			if err != nil {
-				logo.Error("NAT启动错误", err)
+			if switchState == false {
+				RunBackground(func() {
+					setOn()
+					err := tcpkit.TransferFromListenToListenAddress(local, remote, false, tcpListenerChannel, tcpListenerChannel)
+					if err != nil {
+						setOff(tcpListenerChannel)
+						logo.Error("NAT连接错误或中断", err)
+					}
+				})
+			} else {
+				setOff(tcpListenerChannel, tcpListenerChannel)
 			}
-			recover(buttonVector)
+
 		case "LINK":
-			err := tcpkit.TransferFromDialToDialAddress(local, remote)
-			if err != nil {
-				logo.Error("LINK启动错误", err)
+			if switchState == false {
+				RunBackground(func() {
+					setOn()
+					err := tcpkit.TransferFromDialToDialAddress(local, remote)
+					if err != nil {
+						setOff(nil)
+						logo.Error("LINK连接错误或中断", err)
+					}
+				})
+			} else {
+				setOff(nil)
 			}
-			recover(buttonVector)
+
 		}
 
 	})
@@ -126,9 +216,10 @@ func main() {
 	w.ShowAndRun()
 }
 
-func recover(buttonVector *widget.Button) {
-	time.Sleep(500 * time.Millisecond)
-	buttonVector.SetText("Start")
+func RunBackground(task func()) {
+	go func() {
+		task()
+	}()
 }
 
 func init() {

@@ -21,9 +21,9 @@ func Serve() {
 	if global.TCP != nil {
 		for _, conf := range global.TCP {
 			if len(conf.Remote) > 0 {
-				go tcpkit.TransferFromListenToDialAddress(conf.Local, conf.Remote)
+				go tcpkit.TransferFromListenToDialAddress(conf.Local, conf.Remote, true, nil)
 			} else {
-				go tcpkit.TransferFromListenAddress(conf.Local)
+				go tcpkit.TransferFromListenAddress(conf.Local, true, nil)
 			}
 		}
 	}
@@ -53,7 +53,7 @@ func Serve() {
 	}
 	if global.SSH != nil {
 		for _, conf := range global.SSH {
-			go tcpkit.TransferFromListenToDialAddress(conf.Local, conf.Remote)
+			go tcpkit.TransferFromListenToDialAddress(conf.Local, conf.Remote, true, nil)
 		}
 	}
 	if global.HTTP != nil {

@@ -62,12 +62,12 @@ func Start() {
 				local, _ := cmd.Flags().GetString("local")
 				remote, _ := cmd.Flags().GetString("remote")
 				if len(local) > 0 && len(remote) > 0 {
-					err := tcpkit.TransferFromListenToDialAddress(local, remote)
+					err := tcpkit.TransferFromListenToDialAddress(local, remote, true, nil)
 					if err != nil {
 						panic(err)
 					}
 				} else if len(local) > 0 {
-					err := tcpkit.TransferFromListenAddress(local)
+					err := tcpkit.TransferFromListenAddress(local, true, nil)
 					if err != nil {
 						panic(err)
 					}
@@ -150,7 +150,7 @@ func Start() {
 
 				local, _ := cmd.Flags().GetString("local")
 				remote, _ := cmd.Flags().GetString("remote")
-				err := tcpkit.TransferFromListenToDialAddress(local, remote)
+				err := tcpkit.TransferFromListenToDialAddress(local, remote, true, nil)
 				if err != nil {
 					panic(err)
 				}

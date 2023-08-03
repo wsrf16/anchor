@@ -7,7 +7,7 @@ require (
 	github.com/flopp/go-findfont v0.1.0
 	github.com/google/uuid v1.3.0
 	github.com/spf13/cobra v1.6.1
-	github.com/wsrf16/swiss v1.1.0
+	github.com/wsrf16/swiss v1.1.4
 )
 
 require (
