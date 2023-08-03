@@ -91,7 +91,7 @@ func Start() {
 
 				local, _ := cmd.Flags().GetString("local")
 				remote, _ := cmd.Flags().GetString("remote")
-				err := udpkit.TransferFromListenToDialAddress(local, remote)
+				err := udpkit.TransferFromListenToDialAddress(local, remote, nil)
 				if err != nil {
 					panic(err)
 				}
@@ -125,7 +125,7 @@ func Start() {
 				config := sockskit.NewSocksConfig(username, password)
 
 				if len(local) > 0 {
-					err := sockskit.TransferFromListenAddress(local, config)
+					err := sockskit.TransferFromListenAddress(local, config, true, nil)
 					if err != nil {
 						panic(err)
 					}
@@ -232,7 +232,7 @@ func Start() {
 				local, _ := cmd.Flags().GetString("local")
 				remote, _ := cmd.Flags().GetString("remote")
 
-				err := tcpkit.TransferFromListenToListenAddress(local, remote)
+				err := tcpkit.TransferFromListenToListenAddress(local, remote, true, nil, nil)
 				if err != nil {
 					panic(err)
 				}

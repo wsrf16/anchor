@@ -29,7 +29,7 @@ func Serve() {
 	}
 	if global.NAT != nil {
 		for _, conf := range global.NAT {
-			go tcpkit.TransferFromListenToListenAddress(conf.Local, conf.Remote)
+			go tcpkit.TransferFromListenToListenAddress(conf.Local, conf.Remote, true, nil, nil)
 		}
 	}
 	if global.Link != nil {
@@ -39,7 +39,7 @@ func Serve() {
 	}
 	if global.UDP != nil {
 		for _, conf := range global.UDP {
-			go udpkit.TransferFromListenToDialAddress(conf.Local, conf.Remote)
+			go udpkit.TransferFromListenToDialAddress(conf.Local, conf.Remote, nil)
 		}
 	}
 	if global.Socks != nil {
@@ -48,7 +48,7 @@ func Serve() {
 			config.Credential = sockskit.Credential{}
 			config.Credential.Username = conf.Username
 			config.Credential.Password = conf.Password
-			go sockskit.TransferFromListenAddress(conf.Local, &config)
+			go sockskit.TransferFromListenAddress(conf.Local, &config, true, nil)
 		}
 	}
 	if global.SSH != nil {
