@@ -3,6 +3,7 @@ package cmd
 import (
 	"anchor/entry/server"
 	"anchor/module/httpproxy"
+	"anchor/module/shadowsocksserver"
 	"anchor/support/config"
 	"fmt"
 	"github.com/spf13/cobra"
@@ -161,6 +162,36 @@ func Start() {
 	}
 	sshCMD.Flags().StringP("local", "L", "", "<local-address>")
 	sshCMD.Flags().StringP("remote", "R", "", "<remote-address>")
+
+	var ssCMD = &cobra.Command{
+		Use:     "ss",
+		Short:   "Start a shadowsocks server",
+		Long:    "ss -L <local-address> -P <password> -C {PLAIN,AES-128-GCM,AES-256-GCM,CHACHA20-IETF-POLY1305}",
+		Example: "ss -L :8388 -P 123456 -C aes-256-gcm",
+		Run: func(cmd *cobra.Command, args []string) {
+			if cmd.HasFlags() {
+				checkAllFlags(cmd, "local", "password", "cipher")
+
+				local, _ := cmd.Flags().GetString("local")
+				password, _ := cmd.Flags().GetString("password")
+				cipher, _ := cmd.Flags().GetString("cipher")
+				tcp, _ := cmd.Flags().GetBool("tcp")
+				udp, _ := cmd.Flags().GetBool("udp")
+				config := shadowsocksserver.Config{TCP: tcp, UDP: udp, Verbose: true}
+				err := shadowsocksserver.Serve(local, password, cipher, "", config)
+				if err != nil {
+					panic(err)
+				}
+			} else {
+				cmd.Help()
+			}
+		},
+	}
+	ssCMD.Flags().StringP("local", "L", "", "<local-address>")
+	ssCMD.Flags().StringP("password", "P", "", "<password>")
+	ssCMD.Flags().StringP("cipher", "C", "", "{PLAIN,AES-128-GCM,AES-256-GCM,CHACHA20-IETF-POLY1305} (case-insensitive)")
+	ssCMD.Flags().BoolP("tcp", "T", false, "tcp server")
+	ssCMD.Flags().BoolP("udp", "U", false, "udp server")
 
 	var sshPtyCMD = &cobra.Command{
 		Use:     "pty",
@@ -370,6 +401,7 @@ func Start() {
 	rootCMD.AddCommand(socksCMD)
 	rootCMD.AddCommand(httpCMD)
 	rootCMD.AddCommand(sshCMD)
+	rootCMD.AddCommand(ssCMD)
 	rootCMD.AddCommand(sshPtyCMD)
 	rootCMD.AddCommand(serverCMD)
 	rootCMD.AddCommand(linkCMD)

@@ -10,14 +10,15 @@
 ## 1.功能介绍
 
 本软件针对跨区、跨网段等网络不通场景而开发，具备以下功能：
-- http协议：基于http协议的转发、正反向代理
-- tcp协议：基于tcp协议的转发、正反向代理
-- udp协议：基于udp协议的转发，udp到tcp的伪装
-- socks协议：基于socks5协议的正向代理
-- ssh协议：基于ssh协议的转发以及建立隧道，可用于通过ssh协议中转的方式搭建ssh代理机或http代理机
-- http执行机：搭建http服务器，通过http接口的形式，在服务器执行shell脚本，或以服务器为跳板机，访问另一台远端ssh服务器
-- pty客户端：以伪终端的形式，访问远程ssh服务器，类似putty、xshell等工具
-- 内网穿透：在家访问公司电脑（需要一台公网服务器），异地组网
+- [x] http协议：基于http协议的转发、正反向代理
+- [x] tcp协议：基于tcp协议的转发、正反向代理
+- [x] udp协议：基于udp协议的转发，udp到tcp的伪装
+- [x] socks协议：基于socks5协议的正向代理
+- [x] ssh协议：基于ssh协议的转发以及建立隧道，可用于通过ssh协议中转的方式搭建ssh代理机或http代理机
+- [x] shadowsocks：支持建立shadowsocks代理服务器
+- [x] http执行机：搭建http服务器，通过http接口的形式，在服务器执行shell脚本，或以服务器为跳板机，访问另一台远端ssh服务器
+- [x] pty客户端：以伪终端的形式，访问远程ssh服务器，类似putty、xshell等工具
+- [x] 内网穿透：在家访问公司电脑（需要一台公网服务器），异地组网
 
 
 
@@ -52,6 +53,7 @@ Available Commands:
   server      Start an anchor server                                     
   socks       Start a socks server                                      
   ssh         Start a ssh server                                        
+  ss          Start a shadowsocks server                                        
   tcp         Start a tcp server                                        
   udp         Start a udp server                                        
                                                                         
@@ -69,13 +71,13 @@ Use "anchor [command] --help" for more information about a command.
 该类转发在应用层实现，仅适用于http协议，因为https需要证书。
 
 ·正向代理
-```
+```sh
 # 将本机作为代理服务器。其他机器可以通过设置代理为192.168.0.100:8081访问其他网络（假设该服务器ip为192.168.0.100）
 $ anchor http -L :8081
 ```
 
 ·反向代理
-```
+```sh
 # 将本地8081端口接收到的http请求，转发到http://192.168.0.10:8081
 $ anchor http -L :8081 -R http://192.168.0.10:8081
 ```
@@ -86,13 +88,13 @@ $ anchor http -L :8081 -R http://192.168.0.10:8081
 该类转发在会话层实现，支持http、https协议。
 
 ·正向代理
-```
+```sh
 # 将本机作为代理服务器。其他机器可以通过设置代理为192.168.0.100:8081访问其他网络（假设该服务器ip为192.168.0.100）
 $ anchor tcp -L :8081
 ```
 
 ·反向代理
-```
+```sh
 # 将本地8081端口接收到的tcp请求，转发到192.168.0.10的8081端口
 $ anchor tcp -L :8081 -R 192.168.0.10:8081
 ```
@@ -103,7 +105,7 @@ $ anchor tcp -L :8081 -R 192.168.0.10:8081
 该类转发在会话层实现，支持udp协议。
 
 ·反向代理
-```
+```sh
 # 将本地8081端口接收到的udp请求，转发到192.168.0.10的8081端口
 $ anchor udp -L :8081 -R 192.168.0.10:8081
 ```
@@ -114,7 +116,7 @@ $ anchor udp -L :8081 -R 192.168.0.10:8081
 该类转发在会话层实现，支持http、https、ssh、ftp等大部分基于tcp的协议。
 
 ·正向代理
-```
+```sh
 # 将本机作为socks5代理服务器。其他机器可以通过设置代理为192.168.0.100:1080访问其他网络（假设该服务器ip为192.168.0.100）
 $ anchor socks -L :1080 -U user -P 1234
 ```
@@ -122,6 +124,13 @@ $ anchor socks -L :1080 -U user -P 1234
 
 
 #### 3.1.5 ssh隧道
+
+
+#### 3.1.6 shadowsocks代理服务器
+```sh
+# 建立shadowsocks代理服务器;
+$ ss -L :8388 -P 123456 -C aes-256-gcm
+```
 
 
 
@@ -132,7 +141,7 @@ $ anchor socks -L :1080 -U user -P 1234
 
 
 #### 3.1.7 访问远程ssh服务器
-```
+```sh
 $ anchor pty 192.168.0.10 -u root -p 12345678
 ```
 
@@ -143,13 +152,13 @@ $ anchor pty 192.168.0.10 -u root -p 12345678
 
 环境：公网服务器（ip: 110.168.0.104） 内网服务器（ip: 192.168.0.104）
 
-```
+```sh
 $ anchor nat -L :9090 -R :9091
 ```
 
 ##### 3.1.8.2 内网服务器
 环境：内网服务器（ip: 192.168.0.105）
-```
+```sh
 $ anchor link -L 192.168.0.104:9091 -R :1234
 ```
 
@@ -157,7 +166,7 @@ $ anchor link -L 192.168.0.104:9091 -R :1234
 
 在公网访问110.168.0.104:9090，等同于访问内网192.168.0.105:1234
 
-```
+```sh
 $ telnet 110.168.0.104 9090
 ```
 
@@ -166,7 +175,7 @@ $ telnet 110.168.0.104 9090
 ### 3.2 配置文件模式
 通过配置文件方式获取参数，local为本地监听地址（必填），remote为转发目标地址（非必填），一次启动可同时支持多种协议转发，不带参数直接执行可查看帮助：
 
-```
+```sh
 $ ./anchor server
 $ cat config.yaml
 tcp:
@@ -190,6 +199,11 @@ http:
 ssh:
   - local: :8022
     remote: mecs.com:22
+
+ss:
+  - local: :8388
+    password: 123456
+    cipher: aes-256-gcm
 
 httpserver:
   local: :8080

@@ -11,6 +11,7 @@ type RootConfig struct {
 	Socks      []SocksConfig     `json:"socks"`
 	HTTP       []HTTPConfig      `json:"http"`
 	SSH        []SSHConfig       `json:"ssh"`
+	SS         []SSConfig        `json:"ss"`
 	HttpServer *HttpServerConfig `json:"httpserver"`
 }
 type Setting struct {
@@ -37,6 +38,14 @@ type HTTPConfig struct {
 type SSHConfig struct {
 	Local  string `json:"local"`
 	Remote string `json:"remote"`
+}
+
+type SSConfig struct {
+	Local    string `json:"local"`
+	Password string `json:"password"`
+	Cipher   string `json:"cipher"`
+	TCP      bool   `json:"tcp"`
+	UDP      bool   `json:"udp"`
 }
 
 //	type SSH struct {

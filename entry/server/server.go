@@ -3,6 +3,7 @@ package server
 import (
 	"anchor/module/httpproxy"
 	"anchor/module/httpserver"
+	"anchor/module/shadowsocksserver"
 	"anchor/support/config"
 	"fmt"
 	"github.com/wsrf16/swiss/sugar/base/collectorkit"
@@ -54,6 +55,12 @@ func Serve() {
 	if global.SSH != nil {
 		for _, conf := range global.SSH {
 			go tcpkit.TransferFromListenToDialAddress(conf.Local, conf.Remote, true, nil)
+		}
+	}
+	if global.SS != nil {
+		for _, conf := range global.SS {
+			config := shadowsocksserver.Config{TCP: conf.TCP, UDP: conf.UDP, Verbose: true}
+			go shadowsocksserver.Serve(conf.Local, conf.Password, conf.Cipher, "", config)
 		}
 	}
 	if global.HTTP != nil {

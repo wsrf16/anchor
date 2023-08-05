@@ -25,6 +25,13 @@ ssh:
   - local: :8022
     remote: mecs.com:22
 
+ss:
+  - local: :8388
+    password: 123456
+    cipher: aes-256-gcm
+    tcp: false
+    udp: true
+
 nat:
   - local: :9090
     remote: :9091
