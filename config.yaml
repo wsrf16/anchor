@@ -2,43 +2,53 @@ setting:
   allows:
     - 192.168.0.1-192.168.255.254
 
-tcp:
-  - local: :1070
-  - local: :8082
-    remote: mecs.com:7777
+#tcp:
+#  - local: :8082
+##  - local: :8082
+##    remote: mecs.com:7777
+#
+#udp:
+#  - local: :8083
+#    remote: localhost:8084
+#
+#socks:
+#  - local: :1080
+#    user: xxxx
+#    password: yyyy
+#
+#http:
+#  - local: :8087
+#  - local: :8088
+#    remote: http://mecs.com:8080
+#
+#ssh:
+#  - local: :8022
+#    remote: mecs.com:22
+#
+#ss:
+#  - local: :8388
+#    password: 123456
+#    algorithm: chacha20-ietf-poly1305
+#    tcp: true
+#    udp: false
 
-udp:
-  - local: :8083
-    remote: localhost:8084
+t2s:
+  - tunName: MYNIC
+    proxyType: socks
+    proxyServer: micro.com:1080
+    tunAddress: 10.255.0.4
+    tunGateway: 10.255.0.1
+    tunMask: 255.255.255.0
+    tunDNS: 8.8.8.8,8.8.4.4
+    defaultGateway: 192.168.0.1
 
-socks:
-  - local: :1080
-    username: xxxx
-    password: yyyy
-
-http:
-  - local: :8087
-  - local: :8088
-    remote: http://mecs.com:8080
-
-ssh:
-  - local: :8022
-    remote: mecs.com:22
-
-ss:
-  - local: :8388
-    password: 123456
-    cipher: aes-256-gcm
-    tcp: false
-    udp: true
-
-nat:
-  - local: :9090
-    remote: :9091
-
-link:
-  - local: 127.0.0.1:9091
-    remote: mecs.com:7777
+#nat:
+#  - local: :9090
+#    remote: :9091
+#
+#link:
+#  - local: 127.0.0.1:9091
+#    remote: mecs.com:7777
 
 
 httpserver:

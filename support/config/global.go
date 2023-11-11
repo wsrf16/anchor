@@ -1,6 +1,10 @@
 package config
 
-import "github.com/wsrf16/swiss/sugar/netkit/sshkit"
+import (
+	"github.com/wsrf16/swiss/netkit/layer/app/sshkit"
+	"github.com/wsrf16/swiss/netkit/tun2socks/support/t2sconfig"
+	"golang.org/x/net/proxy"
+)
 
 type RootConfig struct {
 	Setting    *Setting          `json:"setting"`
@@ -13,6 +17,7 @@ type RootConfig struct {
 	SSH        []SSHConfig       `json:"ssh"`
 	SS         []SSConfig        `json:"ss"`
 	HttpServer *HttpServerConfig `json:"httpserver"`
+	T2S        []T2SConfig       `json:"t2s"`
 }
 type Setting struct {
 	Allows []string `json:"allows"`
@@ -26,9 +31,10 @@ type UDPConfig struct {
 	Remote string `json:"remote"`
 }
 type SocksConfig struct {
-	Local    string `json:"local"`
-	Username string `json:"username"`
-	Password string `json:"password"`
+	proxy.Auth
+	Local string `json:"local"`
+	//Username string `json:"username"`
+	//Password string `json:"password"`
 }
 type HTTPConfig struct {
 	Local     string `json:"local"`
@@ -41,12 +47,22 @@ type SSHConfig struct {
 }
 
 type SSConfig struct {
-	Local    string `json:"local"`
-	Password string `json:"password"`
-	Cipher   string `json:"cipher"`
-	TCP      bool   `json:"tcp"`
-	UDP      bool   `json:"udp"`
+	Local     string `json:"local"`
+	Password  string `json:"password"`
+	Algorithm string `json:"algorithm"`
+	TCP       bool   `json:"tcp"`
+	UDP       bool   `json:"udp"`
 }
+
+type T2SConfig = t2sconfig.TunConfig
+
+//type T2SConfig struct {
+//    //Local    string `json:"local"`
+//    //Password string `json:"password"`
+//    //Algorithm   string `json:"cipher"`
+//    //TCP      bool   `json:"tcp"`
+//    //UDP      bool   `json:"udp"`
+//}
 
 //	type SSH struct {
 //		ID         string `json:"id"`

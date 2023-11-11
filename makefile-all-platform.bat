@@ -35,3 +35,4 @@ copy .\config.yaml .\output\anchor-windows-amd64\
 7z a .\output\anchor-windows-amd64.7z .\output\anchor-windows-amd64
 rd .\output\anchor-windows-amd64 /s /q
 
+pause

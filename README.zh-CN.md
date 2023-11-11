@@ -10,15 +10,17 @@
 ## 1.功能介绍
 
 本软件针对跨区、跨网段等网络不通场景而开发，具备以下功能：
-- [x] http协议：基于http协议的转发、正反向代理
-- [x] tcp协议：基于tcp协议的转发、正反向代理
+- [x] http协议：基于http协议的转发、正反向代理服务器
+- [x] tcp协议：基于tcp协议的转发、正反向代理服务器
 - [x] udp协议：基于udp协议的转发，udp到tcp的伪装
-- [x] socks协议：基于socks5协议的正向代理
-- [x] ssh协议：基于ssh协议的转发以及建立隧道，可用于通过ssh协议中转的方式搭建ssh代理机或http代理机
-- [x] shadowsocks：支持建立shadowsocks代理服务器
-- [x] http执行机：搭建http服务器，通过http接口的形式，在服务器执行shell脚本，或以服务器为跳板机，访问另一台远端ssh服务器
+- [x] socks协议：基于socks5协议的代理服务器
+- [x] ssh协议：基于ssh协议的转发以及搭建隧道，可用于通过ssh协议中转的方式搭建ssh代理机或http代理机
+- [x] shadowsocks协议：支持搭建shadowsocks代理服务器，不详细解释，你懂
+- [x] tun2socks客户端：基于socks的全局透明代理客户端连接socks服务器，不再需要手动设置应用程序（如浏览器）代理
+- [x] shell/bat执行机：搭建http服务器，通过http接口的形式，在服务器执行shell脚本（windows执行bat批处理），或以服务器为跳板机，访问另一台远端ssh服务器
 - [x] pty客户端：以伪终端的形式，访问远程ssh服务器，类似putty、xshell等工具
 - [x] 内网穿透：在家访问公司电脑（需要一台公网服务器），异地组网
+
 
 
 
@@ -73,13 +75,13 @@ Use "anchor [command] --help" for more information about a command.
 ·正向代理
 ```sh
 # 将本机作为代理服务器。其他机器可以通过设置代理为192.168.0.100:8081访问其他网络（假设该服务器ip为192.168.0.100）
-$ anchor http -L :8081
+$ ./anchor http -L :8081
 ```
 
 ·反向代理
 ```sh
 # 将本地8081端口接收到的http请求，转发到http://192.168.0.10:8081
-$ anchor http -L :8081 -R http://192.168.0.10:8081
+$ ./anchor http -L :8081 -R http://192.168.0.10:8081
 ```
 
 
@@ -90,13 +92,13 @@ $ anchor http -L :8081 -R http://192.168.0.10:8081
 ·正向代理
 ```sh
 # 将本机作为代理服务器。其他机器可以通过设置代理为192.168.0.100:8081访问其他网络（假设该服务器ip为192.168.0.100）
-$ anchor tcp -L :8081
+$ ./anchor tcp -L :8081
 ```
 
 ·反向代理
 ```sh
 # 将本地8081端口接收到的tcp请求，转发到192.168.0.10的8081端口
-$ anchor tcp -L :8081 -R 192.168.0.10:8081
+$ ./anchor tcp -L :8081 -R 192.168.0.10:8081
 ```
 
 
@@ -107,7 +109,7 @@ $ anchor tcp -L :8081 -R 192.168.0.10:8081
 ·反向代理
 ```sh
 # 将本地8081端口接收到的udp请求，转发到192.168.0.10的8081端口
-$ anchor udp -L :8081 -R 192.168.0.10:8081
+$ ./anchor udp -L :8081 -R 192.168.0.10:8081
 ```
 
 
@@ -118,7 +120,7 @@ $ anchor udp -L :8081 -R 192.168.0.10:8081
 ·正向代理
 ```sh
 # 将本机作为socks5代理服务器。其他机器可以通过设置代理为192.168.0.100:1080访问其他网络（假设该服务器ip为192.168.0.100）
-$ anchor socks -L :1080 -U user -P 1234
+$ ./anchor socks -L :1080 -U user -P 1234
 ```
 
 
@@ -128,41 +130,47 @@ $ anchor socks -L :1080 -U user -P 1234
 
 #### 3.1.6 shadowsocks代理服务器
 ```sh
-# 建立shadowsocks代理服务器;
-$ ss -L :8388 -P 123456 -C aes-256-gcm
+# 搭建shadowsocks代理服务器
+$ ./anchor ss -L :8388 -P 123456 -C aes-256-gcm
 ```
 
+#### 3.1.7 tun2socks
+```sh
+# 简单模式
+$ ./anchor t2s --proxyServer 192.168.0.103:1080
+# 手动模式
+$ ./anchor t2s --tunName MYNIC --tunAddress 10.255.0.2 --tunGateway 10.255.0.1 --tunMask 255.255.255.0 --tunDNS 8.8.8.8,8.8.4.4 --proxyType socks --proxyServer 192.168.0.103:1080
+```
 
-
-#### 3.1.6 远程执行机
+#### 3.1.8 远程执行机
 
 搭建http服务器，以http形式执行shell或访问远程ssh。本模式由于参数较多，仅支持配置文件方式启动，详细内容参考[http远程执行机](#remote-server)部分。
 
 
 
-#### 3.1.7 访问远程ssh服务器
+#### 3.1.9 访问远程ssh服务器
 ```sh
-$ anchor pty 192.168.0.10 -u root -p 12345678
+$ ./anchor pty 192.168.0.10 -u root -p 12345678
 ```
 
 
 
-#### 3.1.8 内网穿透
-##### 3.1.8.1 公网服务器（有公网ip）
+#### 3.1.10 内网穿透
+##### 3.1.10.1 公网服务器（有公网ip）
 
 环境：公网服务器（ip: 110.168.0.104） 内网服务器（ip: 192.168.0.104）
 
 ```sh
-$ anchor nat -L :9090 -R :9091
+$ ./anchor nat -L :9090 -R :9091
 ```
 
-##### 3.1.8.2 内网服务器
+##### 3.1.10.2 内网服务器
 环境：内网服务器（ip: 192.168.0.105）
 ```sh
-$ anchor link -L 192.168.0.104:9091 -R :1234
+$ ./anchor link -L 192.168.0.104:9091 -R :1234
 ```
 
-##### 3.1.8.3 公网客户端
+##### 3.1.10.3 公网客户端
 
 在公网访问110.168.0.104:9090，等同于访问内网192.168.0.105:1234
 
@@ -203,7 +211,19 @@ ssh:
 ss:
   - local: :8388
     password: 123456
-    cipher: aes-256-gcm
+    algorithm: aes-256-gcm
+    tcp: true
+    udp: false
+
+t2s:
+  - tunName: MYNIC
+    proxyType: socks
+    proxyServer: micro.com:1080
+    tunAddress: 10.255.0.4
+    tunGateway: 10.255.0.1
+    tunMask: 255.255.255.0
+    tunDNS: 8.8.8.8,8.8.4.4
+    defaultGateway: 192.168.0.1
 
 httpserver:
   local: :8080

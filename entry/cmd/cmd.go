@@ -3,16 +3,21 @@ package cmd
 import (
 	"anchor/entry/server"
 	"anchor/module/httpproxy"
-	"anchor/module/shadowsocksserver"
 	"anchor/support/config"
 	"fmt"
 	"github.com/spf13/cobra"
+	"github.com/wsrf16/swiss/netkit/layer/app/sshkit"
+	"github.com/wsrf16/swiss/netkit/layer/transport/httptrans"
+	"github.com/wsrf16/swiss/netkit/layer/transport/sockstrans"
+	"github.com/wsrf16/swiss/netkit/layer/transport/sstrans"
+	"github.com/wsrf16/swiss/netkit/layer/transport/sstrans/sstcptrans"
+	"github.com/wsrf16/swiss/netkit/layer/transport/tcptrans"
+	"github.com/wsrf16/swiss/netkit/layer/transport/udptrans"
+	"github.com/wsrf16/swiss/netkit/tun2socks"
+	"github.com/wsrf16/swiss/netkit/tun2socks/support/t2sconfig"
 	"github.com/wsrf16/swiss/sugar/base/lambda"
 	"github.com/wsrf16/swiss/sugar/logo"
-	"github.com/wsrf16/swiss/sugar/netkit/socket/sockskit"
-	"github.com/wsrf16/swiss/sugar/netkit/socket/tcpkit"
-	"github.com/wsrf16/swiss/sugar/netkit/socket/udpkit"
-	"github.com/wsrf16/swiss/sugar/netkit/sshkit"
+	"golang.org/x/net/proxy"
 	"os"
 	"strings"
 )
@@ -63,12 +68,12 @@ func Start() {
 				local, _ := cmd.Flags().GetString("local")
 				remote, _ := cmd.Flags().GetString("remote")
 				if len(local) > 0 && len(remote) > 0 {
-					err := tcpkit.TransferFromListenToDialAddress(local, remote, true, nil)
+					err := tcptrans.TransferFromListenToDialAddress(local, remote, true, nil)
 					if err != nil {
 						panic(err)
 					}
 				} else if len(local) > 0 {
-					err := tcpkit.TransferFromListenAddress(local, true, nil)
+					err := httptrans.TransferFromListenAddress(local, true, nil)
 					if err != nil {
 						panic(err)
 					}
@@ -92,7 +97,7 @@ func Start() {
 
 				local, _ := cmd.Flags().GetString("local")
 				remote, _ := cmd.Flags().GetString("remote")
-				err := udpkit.TransferFromListenToDialAddress(local, remote, nil)
+				err := udptrans.TransferFromListenToDialAddress(local, remote, true, nil)
 				if err != nil {
 					panic(err)
 				}
@@ -107,7 +112,7 @@ func Start() {
 	var socksCMD = &cobra.Command{
 		Use:     "socks",
 		Short:   "Start a socks server",
-		Long:    "socks -L <local-address> [-U <username> -P <password>]",
+		Long:    "socks -L <local-address> [-U <user> -P <password>]",
 		Example: "socks -L :8081 -U user -P 1234",
 		Run: func(cmd *cobra.Command, args []string) {
 			if cmd.HasFlags() {
@@ -116,17 +121,17 @@ func Start() {
 				}
 				local, _ := cmd.Flags().GetString("local")
 
-				//_, err := cmd.Flags().GetString("password")
-				//if err != nil {
+				// _, err := cmd.Flags().GetString("password")
+				// if err != nil {
 				//    cmd.Help()
-				//}
+				// }
 
-				username, _ := cmd.Flags().GetString("username")
+				username, _ := cmd.Flags().GetString("user")
 				password, _ := cmd.Flags().GetString("password")
-				config := sockskit.NewSocksConfig(username, password)
 
+				auth := &proxy.Auth{User: username, Password: password}
 				if len(local) > 0 {
-					err := sockskit.TransferFromListenAddress(local, config, true, nil)
+					err := sockstrans.TransferFromListenAddress(local, auth, true, nil)
 					if err != nil {
 						panic(err)
 					}
@@ -137,7 +142,7 @@ func Start() {
 		},
 	}
 	socksCMD.Flags().StringP("local", "L", "", "<local-address>")
-	socksCMD.Flags().StringP("username", "U", "", "<username>")
+	socksCMD.Flags().StringP("user", "U", "", "<user>")
 	socksCMD.Flags().StringP("password", "P", "", "<password>")
 
 	var sshCMD = &cobra.Command{
@@ -151,7 +156,7 @@ func Start() {
 
 				local, _ := cmd.Flags().GetString("local")
 				remote, _ := cmd.Flags().GetString("remote")
-				err := tcpkit.TransferFromListenToDialAddress(local, remote, true, nil)
+				err := tcptrans.TransferFromListenToDialAddress(local, remote, true, nil)
 				if err != nil {
 					panic(err)
 				}
@@ -166,19 +171,22 @@ func Start() {
 	var ssCMD = &cobra.Command{
 		Use:     "ss",
 		Short:   "Start a shadowsocks server",
-		Long:    "ss -L <local-address> -P <password> -C {PLAIN,AES-128-GCM,AES-256-GCM,CHACHA20-IETF-POLY1305}",
+		Long:    "ss -L <local-address> -P <password> -A <algorithm>",
 		Example: "ss -L :8388 -P 123456 -C aes-256-gcm",
 		Run: func(cmd *cobra.Command, args []string) {
 			if cmd.HasFlags() {
-				checkAllFlags(cmd, "local", "password", "cipher")
+				checkAllFlags(cmd, "local", "password", "algorithm")
 
 				local, _ := cmd.Flags().GetString("local")
 				password, _ := cmd.Flags().GetString("password")
-				cipher, _ := cmd.Flags().GetString("cipher")
-				tcp, _ := cmd.Flags().GetBool("tcp")
-				udp, _ := cmd.Flags().GetBool("udp")
-				config := shadowsocksserver.Config{TCP: tcp, UDP: udp, Verbose: true}
-				err := shadowsocksserver.Serve(local, password, cipher, "", config)
+				algorithm, _ := cmd.Flags().GetString("algorithm")
+				// tcp, _ := cmd.Flags().GetBool("tcp")
+				// udp, _ := cmd.Flags().GetBool("udp")
+				config, err := sstrans.BuildConfig(algorithm, nil, password)
+				if err != nil {
+					panic(err)
+				}
+				err = sstcptrans.TransferFromListenAddress(local, config, true, nil)
 				if err != nil {
 					panic(err)
 				}
@@ -189,9 +197,9 @@ func Start() {
 	}
 	ssCMD.Flags().StringP("local", "L", "", "<local-address>")
 	ssCMD.Flags().StringP("password", "P", "", "<password>")
-	ssCMD.Flags().StringP("cipher", "C", "", "{PLAIN,AES-128-GCM,AES-256-GCM,CHACHA20-IETF-POLY1305} (case-insensitive)")
-	ssCMD.Flags().BoolP("tcp", "T", false, "tcp server")
-	ssCMD.Flags().BoolP("udp", "U", false, "udp server")
+	ssCMD.Flags().StringP("algorithm", "A", "", "{PLAIN,AES-128-GCM,AES-256-GCM,CHACHA20-IETF-POLY1305} (case-insensitive)")
+	// ssCMD.Flags().BoolP("tcp", "T", false, "tcp server")
+	// ssCMD.Flags().BoolP("udp", "U", false, "udp server")
 
 	var sshPtyCMD = &cobra.Command{
 		Use:     "pty",
@@ -251,6 +259,45 @@ func Start() {
 	httpCMD.Flags().StringP("local", "L", "", "<local-address>")
 	httpCMD.Flags().StringP("remote", "R", "", "<remote-address>")
 
+	// -tunName 本地连接 -tunAddr 10.255.0.2 -tunGw 10.255.0.1 -tunMask 255.255.255.0 -tunDns 8.8.8.8,8.8.4.4 -proxyType socks -proxyServer 192.168.0.103:1080
+	var t2sCMD = &cobra.Command{
+		Use:     "t2s",
+		Short:   "Start a tun2socks client",
+		Long:    "t2s --tunName <iface-name> --tunAddress <tun-address> --tunGateway <tun-gateway> --tunMask <tun-mask> --tunDNS <tun-dns> --proxyType <proxy-type> --proxyServer <proxy-server>",
+		Example: "t2s --tunName MYNIC --tunAddress 10.255.0.2 --tunGateway 10.255.0.1 --tunMask 255.255.255.0 --tunDNS 8.8.8.8,8.8.4.4 --proxyType socks --proxyServer 192.168.0.103:1080",
+		Run: func(cmd *cobra.Command, args []string) {
+			if cmd.HasFlags() {
+				// checkAllFlags(cmd, "local", "remote")
+
+				tunName, _ := cmd.Flags().GetString("tunName")
+				tunAddress, _ := cmd.Flags().GetString("tunAddress")
+				tunGateway, _ := cmd.Flags().GetString("tunGateway")
+				tunMask, _ := cmd.Flags().GetString("tunMask")
+				tunDNS, _ := cmd.Flags().GetString("tunDNS")
+				blockOutsideDNS, _ := cmd.Flags().GetBool("blockOutsideDNS")
+				proxyType, _ := cmd.Flags().GetString("proxyType")
+				proxyServer, _ := cmd.Flags().GetString("proxyServer")
+				defaultGateway, _ := cmd.Flags().GetString("defaultGateway")
+
+				config := t2sconfig.TunConfig{TunName: &tunName, TunAddress: &tunAddress, TunGateway: &tunGateway, TunMask: &tunMask, TunDNS: &tunDNS, BlockOutsideDNS: &blockOutsideDNS, ProxyType: &proxyType, ProxyServer: &proxyServer, DefaultGateway: &defaultGateway}
+				err := tun2socks.Serve(&config)
+				if err != nil {
+					panic(err)
+				}
+			} else {
+				cmd.Help()
+			}
+		},
+	}
+	t2sCMD.Flags().String("tunName", "", "TUN interface name")
+	t2sCMD.Flags().String("tunAddress", "", "TUN interface address")
+	t2sCMD.Flags().String("tunGateway", "", "TUN interface gateway")
+	t2sCMD.Flags().String("tunMask", "", "TUN interface netmask, it should be a prefixlen (a number) for IPv6 address")
+	t2sCMD.Flags().String("tunDNS", "", "DNS resolvers for TUN interface (only need on Windows)")
+	t2sCMD.Flags().Bool("blockOutsideDNS", false, "Prevent DNS leaks by blocking plaintext DNS queries going out through non-TUN interface (may require admin privileges) (Windows only)")
+	t2sCMD.Flags().String("proxyType", "socks", "Proxy handler type")
+	t2sCMD.Flags().String("proxyServer", "", "proxyServer")
+
 	var natCMD = &cobra.Command{
 		Use:     "nat",
 		Short:   "Start a nat server",
@@ -263,7 +310,7 @@ func Start() {
 				local, _ := cmd.Flags().GetString("local")
 				remote, _ := cmd.Flags().GetString("remote")
 
-				err := tcpkit.TransferFromListenToListenAddress(local, remote, true, nil, nil)
+				err := tcptrans.TransferFromListenToListenAddress(local, remote, true, nil)
 				if err != nil {
 					panic(err)
 				}
@@ -287,7 +334,7 @@ func Start() {
 				local, _ := cmd.Flags().GetString("local")
 				remote, _ := cmd.Flags().GetString("remote")
 
-				err := tcpkit.TransferFromDialToDialAddress(local, remote)
+				err := tcptrans.TransferFromDialToDialAddress(local, remote, true)
 				if err != nil {
 					panic(err)
 				}
@@ -317,7 +364,7 @@ func Start() {
 		Short: "Request remote",
 		Long:  "nat -A <chain> -p <protocol> --destination <destination-address> --to-destination <to-destination-address>",
 		Run: func(cmd *cobra.Command, args []string) {
-			//if cmd.HasFlags() {
+			// if cmd.HasFlags() {
 			//    if !checkAllFlags(cmd, "protocol", "destination", "to-destination") {
 			//        cmd.Help()
 			//    }
@@ -362,9 +409,9 @@ func Start() {
 			//        os.Exit(1)
 			//    }
 			//
-			//} else {
+			// } else {
 			//    cmd.Help()
-			//}
+			// }
 		},
 	}
 	iptablesCMD.Flags().StringP("Append", "A", "", "<table>")
@@ -393,16 +440,17 @@ func Start() {
 			}
 		},
 	}
-	//rootCMD.PersistentFlags().StringP("local", "L", "", "<local-address>")
-	//rootCMD.PersistentFlags().StringP("remote", "R", "", "<remote-address>")
+	// rootCMD.PersistentFlags().StringP("local", "L", "", "<local-address>")
+	// rootCMD.PersistentFlags().StringP("remote", "R", "", "<remote-address>")
 	rootCMD.Flags().BoolP("version", "v", false, "")
 	rootCMD.AddCommand(tcpCMD)
 	rootCMD.AddCommand(udpCMD)
 	rootCMD.AddCommand(socksCMD)
-	rootCMD.AddCommand(httpCMD)
 	rootCMD.AddCommand(sshCMD)
 	rootCMD.AddCommand(ssCMD)
 	rootCMD.AddCommand(sshPtyCMD)
+	rootCMD.AddCommand(httpCMD)
+	rootCMD.AddCommand(t2sCMD)
 	rootCMD.AddCommand(serverCMD)
 	rootCMD.AddCommand(linkCMD)
 	rootCMD.AddCommand(natCMD)

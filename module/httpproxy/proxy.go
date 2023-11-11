@@ -1,10 +1,10 @@
 package httpproxy
 
 import (
+	"github.com/wsrf16/swiss/netkit/layer/app/http/httpkit"
+	"github.com/wsrf16/swiss/netkit/layer/app/http/httpserver"
 	"github.com/wsrf16/swiss/sugar/base/lambda"
 	"github.com/wsrf16/swiss/sugar/base/stringkit"
-	"github.com/wsrf16/swiss/sugar/netkit/http/httpkit"
-	"github.com/wsrf16/swiss/sugar/netkit/http/httpserver"
 	"net/http"
 	"strings"
 )

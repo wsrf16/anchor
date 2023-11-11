@@ -3,14 +3,18 @@ package server
 import (
 	"anchor/module/httpproxy"
 	"anchor/module/httpserver"
-	"anchor/module/shadowsocksserver"
 	"anchor/support/config"
 	"fmt"
+	"github.com/wsrf16/swiss/netkit/layer/app/sshkit"
+	"github.com/wsrf16/swiss/netkit/layer/transport/httptrans"
+	"github.com/wsrf16/swiss/netkit/layer/transport/sockstrans"
+	"github.com/wsrf16/swiss/netkit/layer/transport/sstrans"
+	"github.com/wsrf16/swiss/netkit/layer/transport/sstrans/sstcptrans"
+	"github.com/wsrf16/swiss/netkit/layer/transport/tcptrans"
+	"github.com/wsrf16/swiss/netkit/layer/transport/udptrans"
+	"github.com/wsrf16/swiss/netkit/tun2socks"
 	"github.com/wsrf16/swiss/sugar/base/collectorkit"
-	"github.com/wsrf16/swiss/sugar/netkit/socket/sockskit"
-	"github.com/wsrf16/swiss/sugar/netkit/socket/tcpkit"
-	"github.com/wsrf16/swiss/sugar/netkit/socket/udpkit"
-	"github.com/wsrf16/swiss/sugar/netkit/sshkit"
+	"golang.org/x/net/proxy"
 )
 
 func Serve() {
@@ -22,50 +26,59 @@ func Serve() {
 	if global.TCP != nil {
 		for _, conf := range global.TCP {
 			if len(conf.Remote) > 0 {
-				go tcpkit.TransferFromListenToDialAddress(conf.Local, conf.Remote, true, nil)
+				go tcptrans.TransferFromListenToDialAddress(conf.Local, conf.Remote, true, nil)
 			} else {
-				go tcpkit.TransferFromListenAddress(conf.Local, true, nil)
+				go httptrans.TransferFromListenAddress(conf.Local, true, nil)
 			}
 		}
 	}
 	if global.NAT != nil {
 		for _, conf := range global.NAT {
-			go tcpkit.TransferFromListenToListenAddress(conf.Local, conf.Remote, true, nil, nil)
+			go tcptrans.TransferFromListenToListenAddress(conf.Local, conf.Remote, true, nil)
 		}
 	}
 	if global.Link != nil {
 		for _, conf := range global.Link {
-			go tcpkit.TransferFromDialToDialAddress(conf.Local, conf.Remote)
+			go tcptrans.TransferFromDialToDialAddress(conf.Local, conf.Remote, true)
 		}
 	}
 	if global.UDP != nil {
 		for _, conf := range global.UDP {
-			go udpkit.TransferFromListenToDialAddress(conf.Local, conf.Remote, nil)
+			go udptrans.TransferFromListenToDialAddress(conf.Local, conf.Remote, true, nil)
 		}
 	}
 	if global.Socks != nil {
 		for _, conf := range global.Socks {
-			var config sockskit.SocksConfig
-			config.Credential = sockskit.Credential{}
-			config.Credential.Username = conf.Username
-			config.Credential.Password = conf.Password
-			go sockskit.TransferFromListenAddress(conf.Local, &config, true, nil)
+			auth := &proxy.Auth{User: conf.User, Password: conf.Password}
+			go sockstrans.TransferFromListenAddress(conf.Local, auth, true, nil)
 		}
 	}
 	if global.SSH != nil {
 		for _, conf := range global.SSH {
-			go tcpkit.TransferFromListenToDialAddress(conf.Local, conf.Remote, true, nil)
+			go tcptrans.TransferFromListenToDialAddress(conf.Local, conf.Remote, true, nil)
 		}
 	}
 	if global.SS != nil {
 		for _, conf := range global.SS {
-			config := shadowsocksserver.Config{TCP: conf.TCP, UDP: conf.UDP, Verbose: true}
-			go shadowsocksserver.Serve(conf.Local, conf.Password, conf.Cipher, "", config)
+			config, err := sstrans.BuildConfig(conf.Algorithm, nil, conf.Password)
+			if err != nil {
+				panic(err)
+			}
+			go sstcptrans.TransferFromListenAddress(conf.Local, config, true, nil)
+		}
+	}
+	if global.T2S != nil {
+		for _, conf := range global.T2S {
+			go tun2socks.Serve(&conf)
 		}
 	}
 	if global.HTTP != nil {
 		for _, conf := range global.HTTP {
-			go httpproxy.ListenAndServe(conf.Local, conf.Remote)
+			if len(conf.Remote) > 0 {
+				go httpproxy.ListenAndServe(conf.Local, conf.Remote)
+			} else {
+				go httptrans.TransferFromListenAddress(conf.Local, true, nil)
+			}
 		}
 	}
 	if global.HttpServer != nil && global.HttpServer.SSH != nil {

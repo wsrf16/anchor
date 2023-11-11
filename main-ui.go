@@ -7,10 +7,12 @@ import (
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/widget"
 	"github.com/flopp/go-findfont"
+	"github.com/wsrf16/swiss/netkit/layer/transport/httptrans"
+	"github.com/wsrf16/swiss/netkit/layer/transport/sockstrans"
+	"github.com/wsrf16/swiss/netkit/layer/transport/tcptrans"
+	"github.com/wsrf16/swiss/netkit/layer/transport/udptrans"
 	"github.com/wsrf16/swiss/sugar/logo"
-	"github.com/wsrf16/swiss/sugar/netkit/socket/sockskit"
-	"github.com/wsrf16/swiss/sugar/netkit/socket/tcpkit"
-	"github.com/wsrf16/swiss/sugar/netkit/socket/udpkit"
+	"golang.org/x/net/proxy"
 	"net"
 	"os"
 	"strings"
@@ -108,7 +110,11 @@ func main() {
 				RunBackground(func() {
 					setOn()
 					if len(local) > 0 && len(remote) > 0 {
-						err := udpkit.TransferFromListenToDialAddress(local, remote, udpListenerChannel)
+						transfer, err := udptrans.BuildTransfer(local, remote, false)
+						if err != nil {
+							logo.Error("", err)
+						}
+						err = udptrans.TransferFromListenToDialAddress(local, remote, false, transfer)
 						if err != nil {
 							setOff(nil)
 							logo.Error("UDP连接错误或中断", err)
@@ -127,13 +133,21 @@ func main() {
 				RunBackground(func() {
 					setOn()
 					if len(local) > 0 && len(remote) > 0 {
-						err := tcpkit.TransferFromListenToDialAddress(local, remote, false, tcpListenerChannel)
+						transfer, err := tcptrans.BuildTransfer(local, remote, false)
+						if err != nil {
+							logo.Error("", err)
+						}
+						err = tcptrans.TransferFromListenToDialAddress(local, remote, false, transfer)
 						if err != nil {
 							setOff(tcpListenerChannel)
 							logo.Error("TCP连接错误或中断", err)
 						}
 					} else if len(local) > 0 {
-						err := tcpkit.TransferFromListenAddress(local, false, tcpListenerChannel)
+						transfer, err := httptrans.BuildTransfer(local, false)
+						if err != nil {
+							logo.Error("", err)
+						}
+						err = httptrans.TransferFromListenAddress(local, false, transfer)
 						if err != nil {
 							setOff(tcpListenerChannel)
 							logo.Error("TCP连接错误或中断", err)
@@ -148,8 +162,12 @@ func main() {
 				RunBackground(func() {
 					setOn()
 					if len(local) > 0 {
-						config := sockskit.NewSocksConfig(username, password)
-						err := sockskit.TransferFromListenAddress(local, config, false, tcpListenerChannel)
+						transfer, err := sockstrans.BuildTransfer(local, false)
+						if err != nil {
+							logo.Error("", err)
+						}
+						auth := &proxy.Auth{User: username, Password: password}
+						err = sockstrans.TransferFromListenAddress(local, auth, false, transfer)
 						if err != nil {
 							setOff(tcpListenerChannel)
 							logo.Error("SOCKS连接错误或中断", err)
@@ -163,7 +181,11 @@ func main() {
 			if switchState == false {
 				RunBackground(func() {
 					setOn()
-					err := tcpkit.TransferFromListenToDialAddress(local, remote, false, tcpListenerChannel)
+					transfer, err := tcptrans.BuildTransfer(local, remote, false)
+					if err != nil {
+						logo.Error("", err)
+					}
+					err = tcptrans.TransferFromListenToDialAddress(local, remote, false, transfer)
 					if err != nil {
 						setOff(tcpListenerChannel)
 						logo.Error("SSH连接错误或中断", err)
@@ -176,7 +198,11 @@ func main() {
 			if switchState == false {
 				RunBackground(func() {
 					setOn()
-					err := tcpkit.TransferFromListenToListenAddress(local, remote, false, tcpListenerChannel, tcpListenerChannel)
+					transfer, err := tcptrans.BuildTransfer(local, remote, false)
+					if err != nil {
+						logo.Error("", err)
+					}
+					err = tcptrans.TransferFromListenToListenAddress(local, remote, false, transfer)
 					if err != nil {
 						setOff(tcpListenerChannel)
 						logo.Error("NAT连接错误或中断", err)
@@ -190,7 +216,7 @@ func main() {
 			if switchState == false {
 				RunBackground(func() {
 					setOn()
-					err := tcpkit.TransferFromDialToDialAddress(local, remote)
+					err := tcptrans.TransferFromDialToDialAddress(local, remote, false)
 					if err != nil {
 						setOff(nil)
 						logo.Error("LINK连接错误或中断", err)

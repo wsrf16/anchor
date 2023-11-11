@@ -1,7 +1,7 @@
 package httpserver
 
 import (
-	"github.com/wsrf16/swiss/sugar/netkit/http/httpserver"
+	"github.com/wsrf16/swiss/netkit/layer/app/http/httpserver"
 )
 
 func ListenAndServe(addr string) {

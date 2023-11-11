@@ -7,7 +7,7 @@ import (
 var connectionPool = make(map[string]net.Conn, 0)
 
 //func Register(raddress string, laddress string) error {
-//    raddr, err := tcpkit.NewTCPAddr(raddress)
+//    raddr, err := tcptrans.NewTCPAddr(raddress)
 //    if err != nil {
 //        return err
 //    }
@@ -16,7 +16,7 @@ var connectionPool = make(map[string]net.Conn, 0)
 //        return err
 //    }
 //
-//    laddr, err := tcpkit.NewTCPAddr(laddress)
+//    laddr, err := tcptrans.NewTCPAddr(laddress)
 //    if err != nil {
 //        return err
 //    }

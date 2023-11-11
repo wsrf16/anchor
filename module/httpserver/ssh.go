@@ -3,8 +3,8 @@ package httpserver
 import (
 	"anchor/support/api/results"
 	"anchor/support/bean"
-	"github.com/wsrf16/swiss/sugar/netkit/http/httpkit"
-	"github.com/wsrf16/swiss/sugar/netkit/sshkit"
+	"github.com/wsrf16/swiss/netkit/layer/app/http/httpkit"
+	"github.com/wsrf16/swiss/netkit/layer/app/sshkit"
 	"net/http"
 )
 
